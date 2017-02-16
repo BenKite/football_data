@@ -1,10 +1,13 @@
 ## Ben Kite
-## 2017-02-02
 
 import pandas, numpy
 import requests, bs4
 import re
 
+## Finds offensive player data for a given season.
+## stat indicates what statistic is desired.
+## the user must specify "passing", "rushing", or "receiving"
+## the year indicates the year in which the season of interest started
 def SeasonFinder (stat, year):
     url = "http://www.pro-football-reference.com/years/" + str(year) + "/" + stat + ".htm"
     res = requests.get(url)
@@ -40,17 +43,17 @@ def SeasonFinder (stat, year):
     dat.to_csv("../data/" + str(stat) + "_" + str(year) + ".csv")
     return(dat)
 
-
-## example of use
-tables = ["passing", "rushing", "receiving"]
-years = [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-         2009, 2010, 2011, 2012, 2013, 2014, 2015]
-for y in years:
-    for t in tables:
-        SeasonFinder(t, y)
+## example of use for SeasonFinder
+# tables = ["passing", "rushing", "receiving"]
+# years = [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+#          2009, 2010, 2011, 2012, 2013, 2014, 2015]
+# for y in years:
+#     for t in tables:
+#         SeasonFinder(t, y)
     
     
-
+## Finds all data for a given game based on the date and the name of
+## the home team.
 def GameFinder (date, homeTeam):
     url = "http://www.pro-football-reference.com/boxscores/" +  str(date) + homeTeam + ".htm#all_player_offense"
     res = requests.get(url)
