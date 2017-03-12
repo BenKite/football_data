@@ -6,7 +6,7 @@ import re
 
 def findTables(url):
     res = requests.get(url)
-    comm = re.compile("<!--|-->")    
+    comm = re.compile("<!--|-->")
     soup = bs4.BeautifulSoup(comm.sub("", res.text), 'lxml')
     divs = soup.findAll('div', id = "content")
     divs = divs[0].findAll("div", id=re.compile("^all"))
@@ -25,11 +25,11 @@ def findTables(url):
 def pullTable(url, tableID):
     res = requests.get(url)
     ## Work around comments
-    comm = re.compile("<!--|-->")    
+    comm = re.compile("<!--|-->")
     soup = bs4.BeautifulSoup(comm.sub("", res.text), 'lxml')
     tables = soup.findAll('table', id = tableID)
     data_rows = tables[0].findAll('tr')
-    data_header = tables[0].findAll('thead')   
+    data_header = tables[0].findAll('thead')
     data_header = data_header[0].findAll("tr")
     data_header = data_header[0].findAll("th")
     game_data = [[td.getText() for td in data_rows[i].findAll(['th','td'])]
@@ -43,7 +43,7 @@ def pullTable(url, tableID):
     data = data.loc[data[header[0]] != header[0]]
     data = data.reset_index(drop = True)
     return(data)
-## For example:   
+## For example:
 ## url = "http://www.pro-football-reference.com/boxscores/201702050atl.htm"
 ## pullTable(url, "team_stats")
 
@@ -72,8 +72,8 @@ def seasonFinder (stat, year):
                 replacement.append(xx)
             dat[k] = replacement
     return(dat)
-    
-seasonFinder("passing", 2016)
+
+## seasonFinder("passing", 2016)
 ## For example:
 ## tables = ["passing", "rushing", "receiving"]
 ## years = [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
@@ -81,10 +81,10 @@ seasonFinder("passing", 2016)
 ## for y in years:
 ##     for t in tables:
 ##         SeasonFinder(t, y)
-    
-    
+
+
 ## Finds the play by play table a game with the date and homeTeam provided.
-## The date has to be yyyymmdd with a 0 on the end.  
+## The date has to be yyyymmdd with a 0 on the end.
 ## The reference sites use the trailing 0 incase there are multiple games on the same day (it happens in baseball).
 ## For the 2017 Superbowl the date of February 5th, 2017 would be 201702050.
 ## The team is the three letter abbrieviation for the home team in lower case.
@@ -94,7 +94,7 @@ def playByPlay (date, homeTeam):
     dat = dat.reset_index(drop = True)
     dat = dat.loc[dat["Detail"] != "None"]
     return(dat)
-    
+
 ## For example:
 ## This provides the play by play for the 2017 Superbowl.
 ## playByPlay("201702050", "atl")

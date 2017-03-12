@@ -2,10 +2,10 @@
 
 ## Ben Kite
 
-2017-03-09
+2017-03-12
 
 This repo contains profootballReferenceScrape.py, which contains
-functions for scraping data from pro-football-reference.com. This
+functions for scraping data from pro-football-reference.com. These
 functions allow one to download and organize massive amounts of
 football data quickly.
 
