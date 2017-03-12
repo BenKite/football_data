@@ -92,10 +92,26 @@ def playByPlay (date, homeTeam):
     url = "http://www.pro-football-reference.com/boxscores/" +  str(date) + homeTeam + ".htm"
     dat = pullTable(url, "pbp")
     dat = dat.reset_index(drop = True)
+    dat = dat.loc[dat["Detail"] != "None"]
     return(dat)
     
 ## For example:
 ## This provides the play by play for the 2017 Superbowl.
 ## playByPlay("201702050", "atl")
 
-    
+
+## This function provides an easy way to access NFL scouting combine data.
+## The year indicates the year the combine was held.
+## The pos argument can be used to specify a position to pull data for.
+## If pos is not specified all data will be pulled.
+def pullCombine(year, pos = None):
+    url = "http://www.pro-football-reference.com/draft/" + str(year) + "-combine.htm"
+    dat = pullTable(url, "combine")
+    dat["year"] = year
+    if pos is not None:
+        dat = dat.loc[dat["Pos"] == pos]
+    return(dat)
+
+## For example:
+## This pulls all data for Quarterbacks in 2016
+## pullCombine(2016, "QB")
