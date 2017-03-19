@@ -22,25 +22,26 @@ def findTables(url):
 ## findTables("http://www.pro-football-reference.com/boxscores/201702050atl.htm")
 
 
-def pullTable(url, tableID):
+def pullTable(url, tableID, header = True):
     res = requests.get(url)
     ## Work around comments
     comm = re.compile("<!--|-->")
     soup = bs4.BeautifulSoup(comm.sub("", res.text), 'lxml')
     tables = soup.findAll('table', id = tableID)
     data_rows = tables[0].findAll('tr')
-    data_header = tables[0].findAll('thead')
-    data_header = data_header[0].findAll("tr")
-    data_header = data_header[0].findAll("th")
     game_data = [[td.getText() for td in data_rows[i].findAll(['th','td'])]
         for i in range(len(data_rows))
         ]
     data = pandas.DataFrame(game_data)
-    header = []
-    for i in range(len(data.columns)):
-        header.append(data_header[i].getText())
-    data.columns = header
-    data = data.loc[data[header[0]] != header[0]]
+    if header == True:
+        data_header = tables[0].findAll('thead')
+        data_header = data_header[0].findAll("tr")
+        data_header = data_header[0].findAll("th")
+        header = []
+        for i in range(len(data.columns)):
+            header.append(data_header[i].getText())
+        data.columns = header
+        data = data.loc[data[header[0]] != header[0]]
     data = data.reset_index(drop = True)
     return(data)
 ## For example:
