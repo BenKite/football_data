@@ -4,6 +4,10 @@ import pandas
 import requests, bs4
 import re
 
+## Provides a list of the html tables that can be found at the url
+## provided.  The order in the list returned should reflect the order
+## that the tables appear.  On pro-football-reference.com, these names
+## usually indicate what information they contain.
 def findTables(url):
     res = requests.get(url)
     comm = re.compile("<!--|-->")
@@ -22,6 +26,12 @@ def findTables(url):
 ## findTables("http://www.pro-football-reference.com/boxscores/201702050atl.htm")
 
 
+## Pulls a table (indicated by tableID, which can be identified with
+## "findTables") from the specified url. The header option determines
+## if the function should try to determine the column names and put
+## them in the returned data frame. The default for header is True.
+## If you get an index error for data_header, try specifying header =
+## False. I will include a generated error message for that soon.
 def pullTable(url, tableID, header = True):
     res = requests.get(url)
     ## Work around comments
@@ -58,7 +68,7 @@ def seasonFinder (stat, year):
     url = "http://www.pro-football-reference.com/years/" + str(year) + "/" + stat + ".htm"
     if stat == "rushing":
         stat = "rushing_and_receiving"
-    dat = pullTable(url, stat)
+    dat = pullTable(url, stat, header = False)
     dat = dat.reset_index(drop = True)
     names = dat.columns
     for c in range(0, len(names)):
