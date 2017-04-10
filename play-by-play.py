@@ -2,7 +2,7 @@
 ## 2017-03-31
 
 import profootballReferenceScrape as pf
-import pandas, numpy, re
+import pandas, numpy, re, os
 
 ## This is the only external function in the script.
 ## The season argument indicates the season for which data are desired.
@@ -12,41 +12,75 @@ import pandas, numpy, re
 ## relative to the endzone of the defense is showing some errors.
 ## I am working to improve the location identification process.
 
-def preparePlaybyPlay(season):
+def pullPlaybyPlay(season):
     url = "http://www.pro-football-reference.com/years/" + str(season) + "/games.htm"
     sched = pf.pullTable(url, "games")
-    teamnames = {"crd":'Arizona Cardinals',
-                 "atl":'Atlanta Falcons',
-                 "rav":'Baltimore Ravens',
-                 "buf":'Buffalo Bills',
-                 "car":'Carolina Panthers', 
-                 "chi":'Chicago Bears',
-                 "cin":'Cincinnati Bengals', 
-                 "cle":'Cleveland Browns', 
-                 "dal":'Dallas Cowboys',
-                 "den":'Denver Broncos', 
-                 "det":'Detroit Lions', 
-                 "gnb":'Green Bay Packers',
-                 "htx":'Houston Texans', 
-                 "clt":'Indianapolis Colts', 
-                 "jax":'Jacksonville Jaguars',
-                 "kan":'Kansas City Chiefs', 
-                 "ram":'Los Angeles Rams',
-                 "mia":'Miami Dolphins',
-                 "min":'Minnesota Vikings', 
-                 "nwe":'New England Patriots', 
-                 "nor":'New Orleans Saints',
-                 "nyg":'New York Giants', 
-                 "nyj":'New York Jets', 
-                 "rai":'Oakland Raiders',
-                 "phi":'Philadelphia Eagles', 
-                 "pit":'Pittsburgh Steelers', 
-                 "sdg":'San Diego Chargers',
-                 "sfo":'San Francisco 49ers', 
-                 "sea":'Seattle Seahawks', 
-                 "tam":'Tampa Bay Buccaneers',
-                 "oti":'Tennessee Titans', 
-                 "was":'Washington Redskins'}           
+    if season > 2015:
+        teamnames = {"crd":'Arizona Cardinals',
+                     "atl":'Atlanta Falcons',
+                     "rav":'Baltimore Ravens',
+                     "buf":'Buffalo Bills',
+                     "car":'Carolina Panthers', 
+                     "chi":'Chicago Bears',
+                     "cin":'Cincinnati Bengals', 
+                     "cle":'Cleveland Browns', 
+                     "dal":'Dallas Cowboys',
+                     "den":'Denver Broncos', 
+                     "det":'Detroit Lions', 
+                     "gnb":'Green Bay Packers',
+                     "htx":'Houston Texans', 
+                     "clt":'Indianapolis Colts', 
+                     "jax":'Jacksonville Jaguars',
+                     "kan":'Kansas City Chiefs', 
+                     "ram":'Los Angeles Rams',
+                     "mia":'Miami Dolphins',
+                     "min":'Minnesota Vikings', 
+                     "nwe":'New England Patriots', 
+                     "nor":'New Orleans Saints',
+                     "nyg":'New York Giants', 
+                     "nyj":'New York Jets', 
+                     "rai":'Oakland Raiders',
+                     "phi":'Philadelphia Eagles', 
+                     "pit":'Pittsburgh Steelers', 
+                     "sdg":'San Diego Chargers',
+                     "sfo":'San Francisco 49ers', 
+                     "sea":'Seattle Seahawks', 
+                     "tam":'Tampa Bay Buccaneers',
+                     "oti":'Tennessee Titans', 
+                     "was":'Washington Redskins'}    
+    else:
+        teamnames = {"crd":'Arizona Cardinals',
+                     "atl":'Atlanta Falcons',
+                     "rav":'Baltimore Ravens',
+                     "buf":'Buffalo Bills',
+                     "car":'Carolina Panthers', 
+                     "chi":'Chicago Bears',
+                     "cin":'Cincinnati Bengals', 
+                     "cle":'Cleveland Browns', 
+                     "dal":'Dallas Cowboys',
+                     "den":'Denver Broncos', 
+                     "det":'Detroit Lions', 
+                     "gnb":'Green Bay Packers',
+                     "htx":'Houston Texans', 
+                     "clt":'Indianapolis Colts', 
+                     "jax":'Jacksonville Jaguars',
+                     "kan":'Kansas City Chiefs', 
+                     "ram":'St. Louis Rams',
+                     "mia":'Miami Dolphins',
+                     "min":'Minnesota Vikings', 
+                     "nwe":'New England Patriots', 
+                     "nor":'New Orleans Saints',
+                     "nyg":'New York Giants', 
+                     "nyj":'New York Jets', 
+                     "rai":'Oakland Raiders',
+                     "phi":'Philadelphia Eagles', 
+                     "pit":'Pittsburgh Steelers', 
+                     "sdg":'San Diego Chargers',
+                     "sfo":'San Francisco 49ers', 
+                     "sea":'Seattle Seahawks', 
+                     "tam":'Tampa Bay Buccaneers',
+                     "oti":'Tennessee Titans', 
+                     "was":'Washington Redskins'}                 
     teamnames2 = dict()
     for t in teamnames:
         x = teamnames[t]
@@ -149,13 +183,17 @@ def preparePlaybyPlay(season):
         for ch in range(1, len(tmpdat["EPB"])):
             change.append(tmpdat["EPB"][ch] == tmpdat["EPA"][ch - 1] * -1)
         tmpdat["ChangeOfPoss"] = change    
-                
+        tmpdat["Date"] = date
         pbpdat[i] = tmpdat
-    
     dat = pandas.concat(pbpdat) 
-    dat = dat[["awayteam", "hometeam", "awaypoints", "homepoints", "Detail", "Down", "ToGo", "Location", "Quarter", "Time", "nextpoints", "EPB", "EPA"]]
+    dat = dat[["Date", "awayteam", "hometeam", "awaypoints", "homepoints", "Detail", "Down", "ToGo", "Location", "Quarter", "Time", "nextpoints", "EPB", "EPA"]]
+    dat["Season"] = season    
     dat = dat.loc[dat["Quarter"] != "End of Overtime"]
     dat = dat.reset_index(drop = True)
+    return(dat)   
+        
+def preparePlaybyPlay(dat):
+    season = dat["Season"][0]    
     dat["challenge"] = dat["Detail"].str.contains("challenged")
     dat["spike"] = dat["Detail"].str.contains("spiked")
     dat["knee"] = dat["Detail"].str.contains("kneel")
@@ -185,7 +223,6 @@ def preparePlaybyPlay(season):
         else:
             return("")
     dat["passer"] = dat.apply(passerFunc, axis = 1)
-
     def recFunc(tmp, caught = False):
         if tmp["pass"]:
             deets = tmp["Detail"].split(" ")
@@ -253,41 +290,142 @@ def preparePlaybyPlay(season):
     dat["EPB"] = pandas.to_numeric(dat["EPB"])
     dat["EPAchange"] = dat["EPA"] - dat["EPB"]
     dat["Possession"] = "NA"
-    
     ## Need list of passers, targets, rushers, punters, and kickers from each team.
-    teamabs= {"crd":'ARI',
-              "atl":'ATL',
-              "rav":'BAL',
-              "buf":'BUF',
-              "car":'CAR', 
-              "chi":'CHI',
-              "cin":'CIN', 
-              "cle":'CLE', 
-              "dal":'DAL',
-              "den":'DEN', 
-              "det":'DET', 
-              "gnb":'GNB',
-              "htx":'HOU', 
-              "clt":'IND', 
-              "jax":'JAX',
-              "kan":'KAN', 
-              "ram":'LAR', 
-              "mia":'MIA',
-              "min":'MIN', 
-              "nwe":'NWE', 
-              "nor":'NOR',
-              "nyg":'NYG', 
-              "nyj":'NYJ', 
-              "rai":'OAK',
-              "phi":'PHI', 
-              "pit":'PIT', 
-              "sdg":'SDG',
-              "sfo":'SFO', 
-              "sea":'SEA', 
-              "tam":'TAM',
-              "oti":'TEN', 
-              "was":'WAS'} 
-                 
+    if season > 2015:
+        teamnames = {"crd":'Arizona Cardinals',
+                     "atl":'Atlanta Falcons',
+                     "rav":'Baltimore Ravens',
+                     "buf":'Buffalo Bills',
+                     "car":'Carolina Panthers', 
+                     "chi":'Chicago Bears',
+                     "cin":'Cincinnati Bengals', 
+                     "cle":'Cleveland Browns', 
+                     "dal":'Dallas Cowboys',
+                     "den":'Denver Broncos', 
+                     "det":'Detroit Lions', 
+                     "gnb":'Green Bay Packers',
+                     "htx":'Houston Texans', 
+                     "clt":'Indianapolis Colts', 
+                     "jax":'Jacksonville Jaguars',
+                     "kan":'Kansas City Chiefs', 
+                     "ram":'Los Angeles Rams',
+                     "mia":'Miami Dolphins',
+                     "min":'Minnesota Vikings', 
+                     "nwe":'New England Patriots', 
+                     "nor":'New Orleans Saints',
+                     "nyg":'New York Giants', 
+                     "nyj":'New York Jets', 
+                     "rai":'Oakland Raiders',
+                     "phi":'Philadelphia Eagles', 
+                     "pit":'Pittsburgh Steelers', 
+                     "sdg":'San Diego Chargers',
+                     "sfo":'San Francisco 49ers', 
+                     "sea":'Seattle Seahawks', 
+                     "tam":'Tampa Bay Buccaneers',
+                     "oti":'Tennessee Titans', 
+                     "was":'Washington Redskins'}    
+        teamabs= {"crd":'ARI',
+                  "atl":'ATL',
+                  "rav":'BAL',
+                  "buf":'BUF',
+                  "car":'CAR', 
+                  "chi":'CHI',
+                  "cin":'CIN', 
+                  "cle":'CLE', 
+                  "dal":'DAL',
+                  "den":'DEN', 
+                  "det":'DET', 
+                  "gnb":'GNB',
+                  "htx":'HOU', 
+                  "clt":'IND', 
+                  "jax":'JAX',
+                  "kan":'KAN', 
+                  "ram":'LAR', 
+                  "mia":'MIA',
+                  "min":'MIN', 
+                  "nwe":'NWE', 
+                  "nor":'NOR',
+                  "nyg":'NYG', 
+                  "nyj":'NYJ', 
+                  "rai":'OAK',
+                  "phi":'PHI', 
+                  "pit":'PIT', 
+                  "sdg":'SDG',
+                  "sfo":'SFO', 
+                  "sea":'SEA', 
+                  "tam":'TAM',
+                  "oti":'TEN', 
+                  "was":'WAS'} 
+    else:
+        teamnames = {"crd":'Arizona Cardinals',
+                     "atl":'Atlanta Falcons',
+                     "rav":'Baltimore Ravens',
+                     "buf":'Buffalo Bills',
+                     "car":'Carolina Panthers', 
+                     "chi":'Chicago Bears',
+                     "cin":'Cincinnati Bengals', 
+                     "cle":'Cleveland Browns', 
+                     "dal":'Dallas Cowboys',
+                     "den":'Denver Broncos', 
+                     "det":'Detroit Lions', 
+                     "gnb":'Green Bay Packers',
+                     "htx":'Houston Texans', 
+                     "clt":'Indianapolis Colts', 
+                     "jax":'Jacksonville Jaguars',
+                     "kan":'Kansas City Chiefs', 
+                     "ram":'St. Louis Rams',
+                     "mia":'Miami Dolphins',
+                     "min":'Minnesota Vikings', 
+                     "nwe":'New England Patriots', 
+                     "nor":'New Orleans Saints',
+                     "nyg":'New York Giants', 
+                     "nyj":'New York Jets', 
+                     "rai":'Oakland Raiders',
+                     "phi":'Philadelphia Eagles', 
+                     "pit":'Pittsburgh Steelers', 
+                     "sdg":'San Diego Chargers',
+                     "sfo":'San Francisco 49ers', 
+                     "sea":'Seattle Seahawks', 
+                     "tam":'Tampa Bay Buccaneers',
+                     "oti":'Tennessee Titans', 
+                     "was":'Washington Redskins'}  
+        teamabs= {"crd":'ARI',
+                  "atl":'ATL',
+                  "rav":'BAL',
+                  "buf":'BUF',
+                  "car":'CAR', 
+                  "chi":'CHI',
+                  "cin":'CIN', 
+                  "cle":'CLE', 
+                  "dal":'DAL',
+                  "den":'DEN', 
+                  "det":'DET', 
+                  "gnb":'GNB',
+                  "htx":'HOU', 
+                  "clt":'IND', 
+                  "jax":'JAX',
+                  "kan":'KAN', 
+                  "ram":'STL', 
+                  "mia":'MIA',
+                  "min":'MIN', 
+                  "nwe":'NWE', 
+                  "nor":'NOR',
+                  "nyg":'NYG', 
+                  "nyj":'NYJ', 
+                  "rai":'OAK',
+                  "phi":'PHI', 
+                  "pit":'PIT', 
+                  "sdg":'SDG',
+                  "sfo":'SFO', 
+                  "sea":'SEA', 
+                  "tam":'TAM',
+                  "oti":'TEN', 
+                  "was":'WAS'} 
+    teamnames2 = dict()
+    for t in teamnames:
+        x = teamnames[t]
+        teamnames2[x] = t
+        
     for t in teamnames2:
         team = teamnames2[t]
         url = "http://www.pro-football-reference.com/teams/" + team + "/" + str(season) + ".htm"
@@ -448,13 +586,26 @@ def preparePlaybyPlay(season):
         else:
             nps.append(0)
     dat["nextPoints"] = nps
-    dat["year"] = season
     return(dat)
     
-## This pulls all of the regular season games from 2016.
-## The output is a pandas data frame.
-## The code still needs to be optimized for speed.
-## This could take up to 10 minutes to run.
-dat = preparePlaybyPlay(2016)
+## These simple lines of code put the two functions to work.
+## The work is done in two parts incase internet access is lost.
+## This checks to see if the files already exist to ensure existing files are not overwritten.
 
-dat.to_csv("play_by_play_2016.csv")
+seasons = [2011, 2012, 2013, 2014, 2015, 2016]
+for s in seasons:
+    rawfile = "raw_" + str(s) + ".csv"
+    processedfile = "play_by_play_" + str(s) + ".csv"
+    if os.path.isfile(rawfile):
+        tmpdat = pandas.read_csv(rawfile)
+    else:
+        tmpdat = pullPlaybyPlay(s)
+        tmpdat.to_csv(rawfile)
+        
+    if os.path.isfile(processedfile):
+        None
+    else:
+        tmpdat = preparePlaybyPlay(tmpdat)
+        tmpdat.to_csv(processedfile)
+
+
