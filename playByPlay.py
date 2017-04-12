@@ -424,7 +424,11 @@ def preparePlaybyPlay(dat):
     for t in teamnames:
         x = teamnames[t]
         teamnames2[x] = t
-        
+    
+    passingdict = dict()
+    carrierdict = dict()
+    kickingdict = dict()
+    
     for t in teamnames2:
         team = teamnames2[t]
         url = "http://www.pro-football-reference.com/teams/" + team + "/" + str(season) + ".htm"
@@ -440,6 +444,8 @@ def preparePlaybyPlay(dat):
             pp = p.split(" ")[0] + "_" + p.split(" ")[1]
             pp = re.sub("[.,*+]", "", pp)
             passers.append(pp)
+            
+        passingdict[teamabs[team]] = passers
     
         carry = pf.pullTable(url, "rushing_and_receiving", False)
         carry = carry.loc[carry[0] != ""]
@@ -452,9 +458,11 @@ def preparePlaybyPlay(dat):
         carriers = []
         for p in carry["Player"]:
             pp = p.split(" ")[0] + "_" + p.split(" ")[1]
-            pp = re.sub("[,*]", "", pp)
+            pp = re.sub("[.,*+]", "", pp)
             carriers.append(pp)
             
+        carrierdict[teamabs[team]] = carriers
+    
         kick = pf.pullTable(url, "kicking", False)
         kick = kick.loc[kick[0] != ""]
         colnames = kick.loc[1]
@@ -468,23 +476,68 @@ def preparePlaybyPlay(dat):
             pp = p.split(" ")[0] + "_" + p.split(" ")[1]
             pp = re.sub("[.,*+]", "", pp)
             kickers.append(pp)
+            
+        kickingdict[teamabs[team]] = kickers
         
         tmpteam = teamabs[team]
+    
+    teams = []
+    for t in teamnames2:
+        team = teamnames2[t]
+        teams.append(teamabs[team])
         
-        def inlist(tmp, nvar, nlist, team):
-            if tmp[nvar] in nlist:
-                return(team)
+    ttt = numpy.sort(teams)
+    teams = []
+    for t in ttt:
+        teams.append(t)
+    
+        
+    def inlist(tmp, passingdict, carrierdict, kickingdict, teams):
+        penteam = []        
+        for t in teams:
+            if tmp["penaltyon"] in passingdict[t]:
+                penteam.append(t)
+                
+        pen2team = []        
+        for t in teams:
+            if tmp["penaltyon"] in carrierdict[t]:
+                pen2team.append(t)
+        
+        pteam = []
+        for t in teams:
+            if tmp["passer"] in passingdict[t]:
+                pteam.append(t)
+
+        cteam = []
+        for t in teams:
+            if tmp["rusher"] in carrierdict[t]:
+                cteam.append(t)
+        
+        rteam = []
+        for t in teams:
+            if tmp["receiver"] in carrierdict[t]:
+                rteam.append(t)
+        
+        kteam = []
+        for t in teams:
+            if tmp["passer"] in kickingdict[t]:
+                kteam.append(t)
+                
+        team = numpy.unique(penteam + pen2team + pteam + cteam + rteam + kteam)
+        possible = tmp[["hometeam", "awayteam"]] 
+        if possible["hometeam"] in team:
+            if possible["awayteam"] in team:
+                return("NA")
             else:
-                return(tmp["Possession"])
+                return(possible["hometeam"])
+        else:
+            if possible["awayteam"] in team:
+                return(possible["awayteam"])
+            else:
+                return("NA")
+
+    dat["Possession"] = dat.apply(inlist, 1, args = (passingdict, carrierdict, kickingdict, teams))
         
-        ## This overwrites itself to try to improve accuracy
-        dat["Possession"] = dat.apply(inlist, 1, args = ("penaltyon", passers, tmpteam))
-        dat["Possession"] = dat.apply(inlist, 1, args = ("penaltyon", carriers, tmpteam))    
-        dat["Possession"] = dat.apply(inlist, 1, args = ("receiver", carriers, tmpteam))
-        dat["Possession"] = dat.apply(inlist, 1, args = ("rusher", carriers, tmpteam))
-        dat["Possession"] = dat.apply(inlist, 1, args = ("kicker", kickers, tmpteam))    
-        dat["Possession"] = dat.apply(inlist, 1, args = ("punter", kickers, tmpteam))
-        dat["Possession"] = dat.apply(inlist, 1, args = ("passer", passers, tmpteam))  
     
     def distFunc(tmpr):
         if tmpr["Location"] == tmpr["Location"]:
