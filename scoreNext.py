@@ -62,7 +62,6 @@ for i in range(0, len(dat)):
     
 preds = ["Int", "secondDown", "thirdDown", "forthDown", "ToGo", "distFromGoal", "TimeRemaining", "twoMinute", "interaction"]
 
-
 ## Next TD
 dv = "nextTD"
 clf = LogisticRegression(fit_intercept = False)
@@ -84,30 +83,6 @@ def predictor(down, distance, fromGoal, time):
     return(x)
     
 predictor(2, 10, 60, 4)
-time = [0, 1, 2, 3, 4, 5, 6, 7, 8]
-vv = []
-for t in time:
-    val1 = predictor(1, 10, 75, t)[:,1][0]
-    val2 = predictor(2, 10, 75, t)[:,1][0]
-    val3 = predictor(3, 10, 75, t)[:,1][0]
-    val4 = predictor(4, 10, 75, t)[:,1][0]
-    vv.append([t, val1, val2, val3, val4])
-vv = pandas.DataFrame(vv)
-vv.columns = ["Minutes Remaining", "First", "Second", "Third", "Forth"]
-vv = vv.sort("Minutes Remaining", ascending = False)
-plt.figure()
-line1, = plt.plot(vv["Minutes Remaining"], vv["First"], color = 'b', label = "First Down")
-line2, = plt.plot(vv["Minutes Remaining"], vv["Second"], color = 'purple', label = "Second Down")
-line3, = plt.plot(vv["Minutes Remaining"], vv["Third"], color = 'r', label = "Third Down")
-line4, = plt.plot(vv["Minutes Remaining"], vv["Forth"], color = 'black', label = "Forth Down")
-plt.title("Probability of Possessor Scoring TD Next")        
-plt.ylim(0, 1)        
-plt.xlim(8, 0)        
-plt.xlabel("Time Remaining in Minutes")        
-plt.ylabel("Probability Next Score is a Possessor TD")
-plt.legend(handles = [line1, line2, line3, line4], loc = 1)
-plt.savefig('nextTD.png')
-
 
 ## Next Points
 dv = "nextPoints"
@@ -129,27 +104,5 @@ def predictor(down, distance, fromGoal, time):
     x = clf.predict_proba([1, second, third, forth, distance, fromGoal, time, twomin, interact])
     return(x)
 predictor(2, 10, 60, 4)
-time = [0.1, 1.1, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1, 8.1]
-vv = []
-for t in time:
-    val1 = predictor(1, 10, 75, t)[:,1][0]
-    val2 = predictor(2, 10, 75, t)[:,1][0]
-    val3 = predictor(3, 10, 75, t)[:,1][0]
-    val4 = predictor(4, 10, 75, t)[:,1][0]
-    vv.append([t, val1, val2, val3, val4])
-vv = pandas.DataFrame(vv)
-vv.columns = ["Minutes Remaining", "First", "Second", "Third", "Forth"]
-vv = vv.sort("Minutes Remaining", ascending = False)
-plt.figure()
-line1, = plt.plot(vv["Minutes Remaining"], vv["First"], color = 'b', label = "First Down")
-line2, = plt.plot(vv["Minutes Remaining"], vv["Second"], color = 'purple', label = "Second Down")
-line3, = plt.plot(vv["Minutes Remaining"], vv["Third"], color = 'r', label = "Third Down")
-line4, = plt.plot(vv["Minutes Remaining"], vv["Forth"], color = 'black', label = "Forth Down")
-plt.title("Probability of Possessor Scoring Next")        
-plt.ylim(0, 1)        
-plt.xlim(8, 0)        
-plt.xlabel("Time Remaining in Minutes")        
-plt.ylabel("Probability Next Score is a Possessor TD")
-plt.legend(handles = [line1, line2, line3, line4], loc = 1)
-plt.savefig('nextPoints.png')
+
 
