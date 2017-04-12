@@ -520,7 +520,7 @@ def preparePlaybyPlay(dat):
         
         kteam = []
         for t in teams:
-            if tmp["passer"] in kickingdict[t]:
+            if tmp["kicker"] in kickingdict[t]:
                 kteam.append(t)
                 
         team = numpy.unique(penteam + pen2team + pteam + cteam + rteam + kteam)
