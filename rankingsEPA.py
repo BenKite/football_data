@@ -23,8 +23,8 @@ def ranker(s):
     
     
     ## Best Passers
-    
-    pdat = dat.loc[dat["passer"] == dat["passer"]]
+    pdat = dat.loc[dat["pass"] == True]
+    pdat = pdat.loc[pdat["passer"] == pdat["passer"]]
     passers = numpy.unique(pdat["passer"])
     
     pstats = []
@@ -49,7 +49,8 @@ def ranker(s):
     
     
     ## All passes to WRs
-    wrdat = dat.loc[dat["receiver"] == dat["receiver"]]
+    wrdat = dat.loc[dat["pass"] == True]
+    wrdat = wrdat.loc[wrdat["receiver"] == wrdat["receiver"]]
     receivers = numpy.unique(wrdat["receiver"])
     rstats = []
     for r in receivers:
@@ -73,7 +74,8 @@ def ranker(s):
     
     
     ## Running backs
-    rdat = dat.loc[dat["rusher"] == dat["rusher"]]
+    rdat = dat.loc[dat["run"] == True]
+    rdat = rdat.loc[rdat["rusher"] == rdat["rusher"]]
     runners = numpy.unique(rdat["rusher"])
     
     rstats = []
@@ -129,7 +131,7 @@ def ranker(s):
     tab = render_mpl_table(rstats, header_columns=0, col_width=3.2)
     savefig("runners_" + str(s) + ".png", bbox_inches= 'tight')
 
-seasons = [2012, 2013, 2014, 2015, 2016]
+seasons = [2001, 2013, 2014, 2015, 2016]
 
 for s in seasons:
     ranker(s)

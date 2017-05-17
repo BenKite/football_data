@@ -197,6 +197,7 @@ def preparePlaybyPlay(dat):
     dat["spike"] = dat["Detail"].str.contains("spiked")
     dat["knee"] = dat["Detail"].str.contains("kneel")
     dat["penalty"] = dat["Detail"].str.contains("Penalty")
+    dat["timeout"] = dat["Detail"].str.contains("TIMEOUT")
     def penFunc(tmp): 
         if tmp["penalty"]:
             deets = tmp["Detail"].split(" ")
@@ -244,8 +245,11 @@ def preparePlaybyPlay(dat):
                         if word == "for":
                             start = d
                             break
-                    x = deets[start + 1] + "_" + deets[start + 2]
-                    x = re.sub("[.,]", "", x)
+                    if deets[start + 1] == "":
+                        return("")
+                    else:
+                        x = deets[start + 1] + "_" + deets[start + 2]
+                        x = re.sub("[.,]", "", x)
                     if caught:
                         return(False)    
                     else:
@@ -278,7 +282,7 @@ def preparePlaybyPlay(dat):
     dat["kicker"] = dat.apply(kickFunc, 1)
     dat["to"] = dat["Detail"].str.contains("Timeout")
     dat["nodetail"] = dat["Detail"] == ""
-    dat["run"] = (dat["penalty"] == False) & (dat["challenge"] == False) & (dat["spike"] == False) & (dat["pass"] == False) & (dat["punt"] == False) & (dat["kickoff"] == False) & (dat["FG"] == False) & (dat["xp"] == False) & (dat["to"] == False) & (dat["nodetail"] == False)
+    dat["run"] = (dat["penalty"] == False) & (dat["challenge"] == False) & (dat["spike"] == False) & (dat["pass"] == False) & (dat["punt"] == False) & (dat["kickoff"] == False) & (dat["FG"] == False) & (dat["xp"] == False) & (dat["to"] == False) & (dat["nodetail"] == False) & (dat["timeout"] == False)
     def rushFunc(tmp):
         if tmp["run"]:
             return(tmp["Detail"].split(" ")[0] + "_" + tmp["Detail"].split(" ")[1])
