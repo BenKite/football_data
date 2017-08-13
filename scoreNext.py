@@ -10,7 +10,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.ensemble import RandomForestClassifier
 
-## Scrape the data form the past 6 seasons, 
+## Scrape the data from the past 6 seasons, 
 ## but read the files if they already exists
 seasons = [2011, 2012, 2013, 2014, 2015, 2016]
 datdict = dict()
