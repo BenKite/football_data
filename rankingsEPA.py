@@ -36,7 +36,7 @@ def ranker(s):
         
     pstats = pandas.DataFrame(pstats[1:])
     pstats.columns = ["Passer", "sortme", "Average EPA", "Attempts"]
-    pstats = pstats.sort("sortme", ascending = False)
+    pstats = pstats.sort_values("sortme", ascending = False)
     pstats = pstats.loc[pstats["Attempts"] > 250]
     pstats["Rank"] = range(1, len(pstats) + 1)
     pstats = pstats[["Rank", "Passer", "Average EPA", "Attempts"]]
@@ -61,7 +61,7 @@ def ranker(s):
         
     wrstats = pandas.DataFrame(rstats[1:])
     wrstats.columns = ["Intended Target", "sortme", "Average EPA", "Targets"]
-    wrstats = wrstats.sort("sortme", ascending = False)
+    wrstats = wrstats.sort_values("sortme", ascending = False)
     wrstats = wrstats.loc[wrstats["Targets"] > 50]
     wrstats["Rank"] = range(1, len(wrstats) + 1)
     wrstats = wrstats[["Rank", "Intended Target", "Average EPA", "Targets"]]
@@ -87,7 +87,7 @@ def ranker(s):
     
     rstats = pandas.DataFrame(rstats)
     rstats.columns = ["Rusher", "sortme", "Average EPA", "Attempts"]
-    rstats = rstats.sort("sortme", ascending = False)
+    rstats = rstats.sort_values("sortme", ascending = False)
     rstats = rstats.loc[rstats["Attempts"] > 100]
     rstats["Rank"] = range(1, len(rstats) + 1)
     rstats = rstats[["Rank", "Rusher", "Average EPA", "Attempts"]]
@@ -131,7 +131,7 @@ def ranker(s):
     tab = render_mpl_table(rstats, header_columns=0, col_width=3.2)
     savefig("runners_" + str(s) + ".png", bbox_inches= 'tight')
 
-seasons = [2001, 2013, 2014, 2015, 2016]
+seasons = [2016]
 
 for s in seasons:
     ranker(s)

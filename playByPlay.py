@@ -648,20 +648,20 @@ def preparePlaybyPlay(dat):
 ## The work is done in two parts incase internet access is lost.
 ## This checks to see if the files already exist to ensure existing files are not overwritten.
 
-seasons = [2012, 2013, 2014, 2015, 2016]
-for s in seasons:
-    rawfile = "raw_" + str(s) + ".csv"
-    processedfile = "play_by_play_" + str(s) + ".csv"
-    if os.path.isfile(rawfile):
-        tmpdat = pandas.read_csv(rawfile)
-    else:
-        tmpdat = pullPlaybyPlay(s)
-        tmpdat.to_csv(rawfile)
-        
-    if os.path.isfile(processedfile):
-        None
-    else:
-        tmpdat = preparePlaybyPlay(tmpdat)
-        tmpdat.to_csv(processedfile)
+#seasons = [2012, 2013, 2014, 2015, 2016]
+#for s in seasons:
+#    rawfile = "raw_" + str(s) + ".csv"
+#    processedfile = "play_by_play_" + str(s) + ".csv"
+#    if os.path.isfile(rawfile):
+#        tmpdat = pandas.read_csv(rawfile)
+#    else:
+#        tmpdat = pullPlaybyPlay(s)
+#        tmpdat.to_csv(rawfile)
+#        
+#    if os.path.isfile(processedfile):
+#        None
+#    else:
+#        tmpdat = preparePlaybyPlay(tmpdat)
+#        tmpdat.to_csv(processedfile)
 
 
