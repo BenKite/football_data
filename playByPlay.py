@@ -2,6 +2,7 @@
 
 import profootballReferenceScrape as pf
 import pandas, numpy, re, os
+import datetime
 
 ## This is the only external function in the script.
 ## The season argument indicates the season for which data are desired.
@@ -14,7 +15,43 @@ import pandas, numpy, re, os
 def pullPlaybyPlay(season):
     url = "http://www.pro-football-reference.com/years/" + str(season) + "/games.htm"
     sched = pf.pullTable(url, "games")
-    if season > 2015:
+    today = datetime.date.today()
+    today2 = str(today.year) + str(today.month).zfill(2)+ str(today.day) + "0"
+    today2n = int(today2)
+    if season == 2017:
+        teamnames = {"crd":'Arizona Cardinals',
+                     "atl":'Atlanta Falcons',
+                     "rav":'Baltimore Ravens',
+                     "buf":'Buffalo Bills',
+                     "car":'Carolina Panthers', 
+                     "chi":'Chicago Bears',
+                     "cin":'Cincinnati Bengals', 
+                     "cle":'Cleveland Browns', 
+                     "dal":'Dallas Cowboys',
+                     "den":'Denver Broncos', 
+                     "det":'Detroit Lions', 
+                     "gnb":'Green Bay Packers',
+                     "htx":'Houston Texans', 
+                     "clt":'Indianapolis Colts', 
+                     "jax":'Jacksonville Jaguars',
+                     "kan":'Kansas City Chiefs', 
+                     "ram":'Los Angeles Rams',
+                     "mia":'Miami Dolphins',
+                     "min":'Minnesota Vikings', 
+                     "nwe":'New England Patriots', 
+                     "nor":'New Orleans Saints',
+                     "nyg":'New York Giants', 
+                     "nyj":'New York Jets', 
+                     "rai":'Oakland Raiders',
+                     "phi":'Philadelphia Eagles', 
+                     "pit":'Pittsburgh Steelers', 
+                     "sdg":'Los Angeles Chargers',
+                     "sfo":'San Francisco 49ers', 
+                     "sea":'Seattle Seahawks', 
+                     "tam":'Tampa Bay Buccaneers',
+                     "oti":'Tennessee Titans', 
+                     "was":'Washington Redskins'}   
+    if season in [2015, 2016]:
         teamnames = {"crd":'Arizona Cardinals',
                      "atl":'Atlanta Falcons',
                      "rav":'Baltimore Ravens',
@@ -47,7 +84,7 @@ def pullPlaybyPlay(season):
                      "tam":'Tampa Bay Buccaneers',
                      "oti":'Tennessee Titans', 
                      "was":'Washington Redskins'}    
-    else:
+    if season < 2015:
         teamnames = {"crd":'Arizona Cardinals',
                      "atl":'Atlanta Falcons',
                      "rav":'Baltimore Ravens',
@@ -86,9 +123,10 @@ def pullPlaybyPlay(season):
         teamnames2[x] = t
     sched = sched.loc[sched["Date"] != "Playoffs"]
     sched = sched.loc[:255]
-    sched = sched.reset_index()
+    sched.reset_index(drop = True, inplace = True)
     dates = sched["Date"]
     ndates = []
+    sdates = []
     for d in dates:
         month = d.split(" ")[0]
         day = d.split(" ")[1]
@@ -100,14 +138,18 @@ def pullPlaybyPlay(season):
             year = season + 1
         else:
             year = season
-        ndates.append(str(year) + m + day + "0")    
+        ndates.append(int(str(year) + m + day + "0"))
+        sdates.append(str(year) + m + day + "0")
     ndates
-    sched["Date2"] = ndates
+    sched["Date2"] = sdates
+    sched["Date2n"] = ndates
     pbpdat = dict()
+    
+    sched = sched.loc[sched.Date2n < today2n]
     for i in range(0 , len(sched)):
         tmp = sched.loc[i]
         date = tmp["Date2"]
-        loc = tmp[6]
+        loc = tmp[5]
         if loc == "N":
             ht = "NA"
         else:
@@ -436,7 +478,10 @@ def preparePlaybyPlay(dat):
     for t in teamnames2:
         team = teamnames2[t]
         url = "http://www.pro-football-reference.com/teams/" + team + "/" + str(season) + ".htm"
-        passing = pf.pullTable(url, "passing")
+        try:
+            passing = pf.pullTable(url, "passing")
+        except IndexError:
+            continue
         colnames = passing.columns
         newnames = []
         for c in colnames:
@@ -499,31 +544,55 @@ def preparePlaybyPlay(dat):
     def inlist(tmp, passingdict, carrierdict, kickingdict, teams):
         penteam = []        
         for t in teams:
+            try:
+                x = passingdict[t]
+            except KeyError:
+                continue                 
             if tmp["penaltyon"] in passingdict[t]:
                 penteam.append(t)
                 
         pen2team = []        
         for t in teams:
+            try:
+                x = passingdict[t]
+            except KeyError:
+                continue 
             if tmp["penaltyon"] in carrierdict[t]:
                 pen2team.append(t)
         
         pteam = []
         for t in teams:
+            try:
+                x = passingdict[t]
+            except KeyError:
+                continue 
             if tmp["passer"] in passingdict[t]:
                 pteam.append(t)
 
         cteam = []
         for t in teams:
+            try:
+                x = passingdict[t]
+            except KeyError:
+                continue 
             if tmp["rusher"] in carrierdict[t]:
                 cteam.append(t)
         
         rteam = []
         for t in teams:
+            try:
+                x = passingdict[t]
+            except KeyError:
+                continue 
             if tmp["receiver"] in carrierdict[t]:
                 rteam.append(t)
         
         kteam = []
         for t in teams:
+            try:
+                x = passingdict[t]
+            except KeyError:
+                continue 
             if tmp["kicker"] in kickingdict[t]:
                 kteam.append(t)
                 
@@ -642,22 +711,23 @@ def preparePlaybyPlay(dat):
         else:
             nps.append(0)
     dat["nextPoints"] = nps
+    dat.to_csv("play_by_play_" + str(season) + ".csv")
     return(dat)
     
 ## These simple lines of code put the two functions to work.
 ## The work is done in two parts incase internet access is lost.
 ## This checks to see if the files already exist to ensure existing files are not overwritten.
 
-#seasons = [2012, 2013, 2014, 2015, 2016]
-#for s in seasons:
-#    rawfile = "raw_" + str(s) + ".csv"
-#    processedfile = "play_by_play_" + str(s) + ".csv"
-#    if os.path.isfile(rawfile):
-#        tmpdat = pandas.read_csv(rawfile)
-#    else:
-#        tmpdat = pullPlaybyPlay(s)
-#        tmpdat.to_csv(rawfile)
-#        
+seasons = [2017]
+for s in seasons:
+    rawfile = "raw_" + str(s) + ".csv"
+    processedfile = "play_by_play_" + str(s) + ".csv"
+    if os.path.isfile(rawfile):
+        tmpdat = pandas.read_csv(rawfile)
+    else:
+        tmpdat = pullPlaybyPlay(s)
+        tmpdat.to_csv(rawfile)
+        
 #    if os.path.isfile(processedfile):
 #        None
 #    else:
