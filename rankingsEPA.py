@@ -1,7 +1,10 @@
 ## Ben Kite
 
+weeks = 3
+
 from playByPlay import pullPlaybyPlay, preparePlaybyPlay 
-import pandas, numpy, re, os
+import pandas, numpy, re
+import os
 import numpy as np
 from pylab import *
 
@@ -40,7 +43,7 @@ def ranker(s):
     pstats = pandas.DataFrame(pstats[1:])
     pstats.columns = ["Passer", "Team", "sortme", "Average EPA", "Attempts"]
     pstats = pstats.sort_values("sortme", ascending = False)
-    pstats = pstats.loc[pstats["Attempts"] > 20]
+    pstats = pstats.loc[pstats["Attempts"] > 20 * weeks]
     pstats["Rank"] = range(1, len(pstats) + 1)
     pstats = pstats[["Rank", "Passer", "Team", "Average EPA", "Attempts"]]
     fancynames = []
@@ -66,7 +69,7 @@ def ranker(s):
     wrstats = pandas.DataFrame(rstats[1:])
     wrstats.columns = ["Intended Target", "Team", "sortme", "Average EPA", "Targets"]
     wrstats = wrstats.sort_values("sortme", ascending = False)
-    wrstats = wrstats.loc[wrstats["Targets"] > 3]
+    wrstats = wrstats.loc[wrstats["Targets"] > 4 * weeks]
     wrstats["Rank"] = range(1, len(wrstats) + 1)
     wrstats = wrstats[["Rank", "Intended Target", "Team", "Average EPA", "Targets"]]
     wrstats = wrstats[0:30]
@@ -93,7 +96,7 @@ def ranker(s):
     rstats = pandas.DataFrame(rstats)
     rstats.columns = ["Rusher", "Team", "sortme", "Average EPA", "Attempts"]
     rstats = rstats.sort_values("sortme", ascending = False)
-    rstats = rstats.loc[rstats["Attempts"] > 10]
+    rstats = rstats.loc[rstats["Attempts"] > 10 * weeks]
     rstats["Rank"] = range(1, len(rstats) + 1)
     rstats = rstats[["Rank", "Rusher", "Team", "Average EPA", "Attempts"]]
     rstats = rstats[0:30]
