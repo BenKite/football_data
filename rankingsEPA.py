@@ -1,6 +1,6 @@
 ## Ben Kite
 
-weeks = 3
+weeks = 5
 
 from playByPlay import pullPlaybyPlay, preparePlaybyPlay 
 import pandas, numpy, re
@@ -12,21 +12,14 @@ def ranker(s):
     rawfile = "raw_" + str(s) + ".csv"
     processedfile = "play_by_play_" + str(s) + ".csv"
     if os.path.isfile(rawfile):
-        if os.path.isfile(processedfile):
-            None
-        else:
-            tmpdat = pandas.read_csv(rawfile)
+        tmpdat = pandas.read_csv(rawfile)
     else:
         tmpdat = pullPlaybyPlay(s)
         tmpdat.to_csv(rawfile)
         
-    if os.path.isfile(processedfile):
-        dat = pandas.read_csv(processedfile)
-    else:
-        dat = preparePlaybyPlay(tmpdat)
-        dat.to_csv(processedfile)
-    
-    
+    dat = preparePlaybyPlay(tmpdat)
+    dat.to_csv(processedfile)
+      
     ## Best Passers
     pdat = dat.loc[dat["pass"] == True]
     pdat = pdat.loc[pdat["passer"] == pdat["passer"]]
@@ -40,7 +33,7 @@ def ranker(s):
         mv2 = format(mv, ".3f")
         pstats.append([p, numpy.unique(tmpdat.Possession)[0], mv, mv2, len(tmpdat)])
         
-    pstats = pandas.DataFrame(pstats[1:])
+    pstats = pandas.DataFrame(pstats)
     pstats.columns = ["Passer", "Team", "sortme", "Average EPA", "Attempts"]
     pstats = pstats.sort_values("sortme", ascending = False)
     pstats = pstats.loc[pstats["Attempts"] > 20 * weeks]
