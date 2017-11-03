@@ -16,7 +16,7 @@ def pullPlaybyPlay(season):
     url = "http://www.pro-football-reference.com/years/" + str(season) + "/games.htm"
     sched = pf.pullTable(url, "games")
     today = datetime.date.today()
-    today2 = str(today.year) + str(today.month).zfill(2)+ str(today.day) + "0"
+    today2 = str(today.year) + str(today.month).zfill(2)+ str(today.day).zfill(2) + "0"
     today2n = int(today2)
     if season == 2017:
         teamnames = {"crd":'Arizona Cardinals',
@@ -336,7 +336,73 @@ def preparePlaybyPlay(dat):
     dat["EPAchange"] = dat["EPA"] - dat["EPB"]
     dat["Possession"] = "NA"
     ## Need list of passers, targets, rushers, punters, and kickers from each team.
-    if season > 2015:
+    if season > 2016:
+        teamnames = {"crd":'Arizona Cardinals',
+                     "atl":'Atlanta Falcons',
+                     "rav":'Baltimore Ravens',
+                     "buf":'Buffalo Bills',
+                     "car":'Carolina Panthers', 
+                     "chi":'Chicago Bears',
+                     "cin":'Cincinnati Bengals', 
+                     "cle":'Cleveland Browns', 
+                     "dal":'Dallas Cowboys',
+                     "den":'Denver Broncos', 
+                     "det":'Detroit Lions', 
+                     "gnb":'Green Bay Packers',
+                     "htx":'Houston Texans', 
+                     "clt":'Indianapolis Colts', 
+                     "jax":'Jacksonville Jaguars',
+                     "kan":'Kansas City Chiefs', 
+                     "ram":'Los Angeles Rams',
+                     "mia":'Miami Dolphins',
+                     "min":'Minnesota Vikings', 
+                     "nwe":'New England Patriots', 
+                     "nor":'New Orleans Saints',
+                     "nyg":'New York Giants', 
+                     "nyj":'New York Jets', 
+                     "rai":'Oakland Raiders',
+                     "phi":'Philadelphia Eagles', 
+                     "pit":'Pittsburgh Steelers', 
+                     "lac":'Los Angeles Chargers',
+                     "sfo":'San Francisco 49ers', 
+                     "sea":'Seattle Seahawks', 
+                     "tam":'Tampa Bay Buccaneers',
+                     "oti":'Tennessee Titans', 
+                     "was":'Washington Redskins'}    
+        teamabs= {"crd":'ARI',
+                  "atl":'ATL',
+                  "rav":'BAL',
+                  "buf":'BUF',
+                  "car":'CAR', 
+                  "chi":'CHI',
+                  "cin":'CIN', 
+                  "cle":'CLE', 
+                  "dal":'DAL',
+                  "den":'DEN', 
+                  "det":'DET', 
+                  "gnb":'GNB',
+                  "htx":'HOU', 
+                  "clt":'IND', 
+                  "jax":'JAX',
+                  "kan":'KAN', 
+                  "ram":'LAR', 
+                  "mia":'MIA',
+                  "min":'MIN', 
+                  "nwe":'NWE', 
+                  "nor":'NOR',
+                  "nyg":'NYG', 
+                  "nyj":'NYJ', 
+                  "rai":'OAK',
+                  "phi":'PHI', 
+                  "pit":'PIT', 
+                  "lac":'LAC',
+                  "sfo":'SFO', 
+                  "sea":'SEA', 
+                  "tam":'TAM',
+                  "oti":'TEN', 
+                  "was":'WAS'} 
+    
+    if season == 2016:
         teamnames = {"crd":'Arizona Cardinals',
                      "atl":'Atlanta Falcons',
                      "rav":'Baltimore Ravens',
@@ -401,7 +467,7 @@ def preparePlaybyPlay(dat):
                   "tam":'TAM',
                   "oti":'TEN', 
                   "was":'WAS'} 
-    else:
+    if season < 2016:
         teamnames = {"crd":'Arizona Cardinals',
                      "atl":'Atlanta Falcons',
                      "rav":'Baltimore Ravens',
@@ -728,10 +794,10 @@ for s in seasons:
         tmpdat = pullPlaybyPlay(s)
         tmpdat.to_csv(rawfile)
         
-#    if os.path.isfile(processedfile):
-#        None
-#    else:
-#        tmpdat = preparePlaybyPlay(tmpdat)
-#        tmpdat.to_csv(processedfile)
+    if os.path.isfile(processedfile):
+        None
+    else:
+        tmpdat = preparePlaybyPlay(tmpdat)
+        tmpdat.to_csv(processedfile)
 
 

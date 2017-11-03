@@ -1,6 +1,6 @@
 ## Ben Kite
 
-weeks = 5
+weeks = 8
 
 from playByPlay import pullPlaybyPlay, preparePlaybyPlay 
 import pandas, numpy, re
@@ -17,6 +17,9 @@ def ranker(s):
         tmpdat = pullPlaybyPlay(s)
         tmpdat.to_csv(rawfile)
         
+    #if os.path.isfile(processedfile):
+    #    dat = pandas.read_csv(processedfile)
+    #else:
     dat = preparePlaybyPlay(tmpdat)
     dat.to_csv(processedfile)
       
@@ -38,7 +41,11 @@ def ranker(s):
     pstats = pstats.sort_values("sortme", ascending = False)
     pstats = pstats.loc[pstats["Attempts"] > 20 * weeks]
     pstats["Rank"] = range(1, len(pstats) + 1)
-    pstats = pstats[["Rank", "Passer", "Team", "Average EPA", "Attempts"]]
+    mean = pstats["sortme"].mean()
+    sd = pstats["sortme"].std()
+    z = (pstats["sortme"] - mean) /sd
+    pstats["Z-score"] = numpy.round(z, 3)
+    pstats = pstats[["Rank", "Passer", "Team", "Average EPA", "Z-score", "Attempts"]]
     fancynames = []
     for p in pstats["Passer"]:
         fancynames.append(re.sub("_", " ", p))
