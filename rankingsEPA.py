@@ -1,12 +1,20 @@
 ## Ben Kite
 
-weeks = 8
+weeks = 12
 
 from playByPlay import pullPlaybyPlay, preparePlaybyPlay 
+from profootballReferenceScrape import findTables, pullTable
 import pandas, numpy, re
 import os
 import numpy as np
 from pylab import *
+
+## Get current team info
+
+passingid = findTables("https://www.pro-football-reference.com/years/2017/passing.htm")
+passersDat = pullTable("https://www.pro-football-reference.com/years/2017/passing.htm", passingid)
+passersDat = pandas.DataFrame(passersDat.iloc[:,[1, 2]])
+passersDat.columns = ["Passer", "Team"]
 
 def ranker(s):
     rawfile = "raw_" + str(s) + ".csv"
@@ -34,10 +42,10 @@ def ranker(s):
         tmpdat = dat.loc[dat["passer"] == p]
         mv = numpy.mean(tmpdat["EPAchange"]) 
         mv2 = format(mv, ".3f")
-        pstats.append([p, numpy.unique(tmpdat.Possession)[0], mv, mv2, len(tmpdat)])
+        pstats.append([p, mv, mv2, len(tmpdat)])
         
     pstats = pandas.DataFrame(pstats)
-    pstats.columns = ["Passer", "Team", "sortme", "Average EPA", "Attempts"]
+    pstats.columns = ["Passer", "sortme", "Average EPA", "Attempts"]
     pstats = pstats.sort_values("sortme", ascending = False)
     pstats = pstats.loc[pstats["Attempts"] > 20 * weeks]
     pstats["Rank"] = range(1, len(pstats) + 1)
@@ -45,11 +53,14 @@ def ranker(s):
     sd = pstats["sortme"].std()
     z = (pstats["sortme"] - mean) /sd
     pstats["Z-score"] = numpy.round(z, 3)
-    pstats = pstats[["Rank", "Passer", "Team", "Average EPA", "Z-score", "Attempts"]]
+    pstats = pstats[["Rank", "Passer", "Average EPA", "Z-score", "Attempts"]]
     fancynames = []
     for p in pstats["Passer"]:
         fancynames.append(re.sub("_", " ", p))
     pstats["Passer"] = fancynames
+    pstats = pandas.merge(pstats, passersDat, 'left', on = "Passer")
+    pstats = pstats[["Rank", "Passer", "Team", "Average EPA", "Z-score", "Attempts"]]
+    pstats.columns = ["Rank", "Passer", "Team", "Average EPA", "Z-score", "Attempts (min = " + str(20 * weeks) + ")"]
     pstats.to_csv("passing_" + str(s) + ".csv", index = False)
     
     
@@ -64,14 +75,14 @@ def ranker(s):
         tmpdat = wrdat.loc[dat["receiver"] == r]
         mv = numpy.mean(tmpdat["EPAchange"]) 
         mv2 = format(mv, ".3f")
-        rstats.append([r, numpy.unique(tmpdat.Possession)[0], mv, mv2, len(tmpdat)])
+        rstats.append([r, mv, mv2, len(tmpdat)])
         
     wrstats = pandas.DataFrame(rstats[1:])
-    wrstats.columns = ["Intended Target", "Team", "sortme", "Average EPA", "Targets"]
+    wrstats.columns = ["Intended Target", "sortme", "Average EPA", "Targets"]
     wrstats = wrstats.sort_values("sortme", ascending = False)
     wrstats = wrstats.loc[wrstats["Targets"] > 4 * weeks]
     wrstats["Rank"] = range(1, len(wrstats) + 1)
-    wrstats = wrstats[["Rank", "Intended Target", "Team", "Average EPA", "Targets"]]
+    wrstats = wrstats[["Rank", "Intended Target", "Average EPA", "Targets"]]
     wrstats = wrstats[0:30]
     fancynames = []
     for p in wrstats["Intended Target"]:
@@ -91,14 +102,14 @@ def ranker(s):
         tmpdat = rdat.loc[rdat["rusher"] == r]
         mv = numpy.mean(tmpdat["EPAchange"]) 
         mv2 = format(mv, ".3f")
-        rstats.append([r, numpy.unique(tmpdat.Possession)[0], mv, mv2, len(tmpdat)])
+        rstats.append([r, mv, mv2, len(tmpdat)])
     
     rstats = pandas.DataFrame(rstats)
-    rstats.columns = ["Rusher", "Team", "sortme", "Average EPA", "Attempts"]
+    rstats.columns = ["Rusher", "sortme", "Average EPA", "Attempts"]
     rstats = rstats.sort_values("sortme", ascending = False)
     rstats = rstats.loc[rstats["Attempts"] > 10 * weeks]
     rstats["Rank"] = range(1, len(rstats) + 1)
-    rstats = rstats[["Rank", "Rusher", "Team", "Average EPA", "Attempts"]]
+    rstats = rstats[["Rank", "Rusher", "Average EPA", "Attempts"]]
     rstats = rstats[0:30]
     fancynames = []
     for p in rstats["Rusher"]:
