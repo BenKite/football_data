@@ -1,6 +1,6 @@
 ## Ben Kite
 
-weeks = 12
+weeks = 16
 
 from playByPlay import pullPlaybyPlay, preparePlaybyPlay 
 from profootballReferenceScrape import findTables, pullTable
@@ -15,6 +15,46 @@ passingid = findTables("https://www.pro-football-reference.com/years/2017/passin
 passersDat = pullTable("https://www.pro-football-reference.com/years/2017/passing.htm", passingid)
 passersDat = pandas.DataFrame(passersDat.iloc[:,[1, 2]])
 passersDat.columns = ["Passer", "Team"]
+
+replacement = []
+
+for i in range(0, len(passersDat["Passer"])):
+    p = passersDat.loc[i]["Passer"]
+    xx = re.sub("[#@*&^%$!+]", "", p)
+    replacement.append(xx)
+
+passersDat["Passer"] = replacement                
+
+
+skillid = findTables("https://www.pro-football-reference.com/years/2017/receiving.htm")
+skillDat = pullTable("https://www.pro-football-reference.com/years/2017/receiving.htm", skillid[0])
+skillDat = pandas.DataFrame(skillDat.iloc[:,[1, 2]])
+skillDat.columns = [["Intended Target", "Team"]]
+
+replacement2 = []
+
+for i in range(0, len(skillDat["Intended Target"])):
+    p = skillDat.loc[i]["Intended Target"]
+    xx = re.sub("[#@*&^%$!+]", "", p)
+    replacement2.append(xx)
+
+skillDat["Intended Target"] = replacement2 
+
+
+skillid2 = findTables("https://www.pro-football-reference.com/years/2017/rushing.htm")
+skillDat2 = pullTable("https://www.pro-football-reference.com/years/2017/rushing.htm", skillid2[0], header = False)
+skillDat2 = pandas.DataFrame(skillDat2.iloc[:,[1, 2]])
+skillDat2.columns = [["Rusher", "Team"]]
+
+replacement3 = []
+
+for i in range(0, len(skillDat2["Rusher"])):
+    p = skillDat2.loc[i]["Rusher"]
+    xx = re.sub("[#@*&^%$!+]", "", p)
+    replacement3.append(xx)
+
+skillDat2["Rusher"] = replacement3 
+
 
 def ranker(s):
     rawfile = "raw_" + str(s) + ".csv"
@@ -64,7 +104,6 @@ def ranker(s):
     pstats.to_csv("passing_" + str(s) + ".csv", index = False)
     
     
-    
     ## All passes to WRs
     wrdat = dat.loc[dat["pass"] == True]
     wrdat = wrdat.loc[wrdat["receiver"] == wrdat["receiver"]]
@@ -88,6 +127,10 @@ def ranker(s):
     for p in wrstats["Intended Target"]:
         fancynames.append(re.sub("_", " ", p))
     wrstats["Intended Target"] = fancynames
+    wrstats = pandas.merge(wrstats, skillDat, 'left', on = "Intended Target")
+    wrstats = wrstats[["Rank", "Intended Target", "Team", "Average EPA", "Targets"]]
+    wrstats.columns = [["Rank", "Intended Target", "Team", "Average EPA", "Targets (min = " + str(4 * weeks) + ")"]]
+    wrstats = wrstats.drop_duplicates(subset=["Intended Target"], keep="first")
     wrstats.to_csv("targets_" + str(s) + ".csv", index = False)
     
     
@@ -115,6 +158,10 @@ def ranker(s):
     for p in rstats["Rusher"]:
         fancynames.append(re.sub("_", " ", p))
     rstats["Rusher"] = fancynames
+    rstats = pandas.merge(rstats, skillDat2, 'left', on = "Rusher")
+    rstats = rstats[["Rank", "Rusher", "Team", "Average EPA", "Attempts"]]
+    rstats.columns = [["Rank", "Rusher", "Team", "Average EPA", "Attempts (min = " + str(10 * weeks) + ")"]]
+    rstats = rstats.drop_duplicates(subset=["Rusher"], keep="first")
     rstats.to_csv("rushing_" + str(s) + ".csv", index = False)
     
     
